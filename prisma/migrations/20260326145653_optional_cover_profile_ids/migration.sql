@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "User" ALTER COLUMN "profileMovieId" DROP NOT NULL,
+ALTER COLUMN "coverMovieId" DROP NOT NULL;
