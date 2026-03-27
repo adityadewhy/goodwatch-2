@@ -1,6 +1,5 @@
 import {NextRequest, NextResponse} from "next/server";
 import {getMovieDetails, getPosterUrl} from "@/lib/tmdb";
-import {Prisma} from "@prisma/client";
 import {prisma} from "@/lib/prisma";
 
 export async function GET(
@@ -57,19 +56,19 @@ export async function GET(
 			},
 		});
 
-        //reached here without returning cacheData, now have to return freshData
-        return NextResponse.json({
-            movie: {
-                ...movie,
-                director,
-                cast,
-            }
-        })
-	} catch (error){
-        console.error("movie details error:", error)
-        return NextResponse.json(
-            {error: "failed fetching movie details"},
-            {status: 500}
-        )
-    }
+		//reached here without returning cacheData, now have to return freshData
+		return NextResponse.json({
+			movie: {
+				...movie,
+				director,
+				cast,
+			},
+		});
+	} catch (error) {
+		console.error("movie details error:", error);
+		return NextResponse.json(
+			{error: "failed fetching movie details"},
+			{status: 500},
+		);
+	}
 }
