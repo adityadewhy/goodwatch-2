@@ -21,12 +21,12 @@ model User {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  ratings          Rating[]
-  watchlist        WatchlistItem[]
-  comments         Comment[]
-  sentRequests     Friendship[]    @relation("Requester")
-  receivedRequests Friendship[]    @relation("Addressee")
-  notifications    Notification[]
+  ratings       Rating[]
+  watchlist     WatchlistItem[]
+  comments      Comment[]
+  following     Follow[]        @relation("Follower")
+  followers     Follow[]        @relation("Following")
+  notifications Notification[]
 }
 
 model Movie {
@@ -80,18 +80,17 @@ model Comment {
   movie Movie @relation(fields: [movieId], references: [id], onDelete: Cascade)
 }
 
-model Friendship {
-  id          String           @id @default(cuid())
-  requesterId String
-  addresseeId String
-  status      FriendshipStatus @default(PENDING)
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+model Follow {
+  id          String       @id @default(cuid())
+  followerId  String
+  followingId String
+  status      FollowStatus @default(PENDING)
+  createdAt   DateTime     @default(now())
 
-  requester User @relation("Requester", fields: [requesterId], references: [id], onDelete: Cascade)
-  addressee User @relation("Addressee", fields: [addresseeId], references: [id], onDelete: Cascade)
+  follower  User @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
 
-  @@unique([requesterId, addresseeId])
+  @@unique([followerId, followingId])
 }
 
 model Notification {
@@ -105,8 +104,7 @@ model Notification {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-enum FriendshipStatus {
+enum FollowStatus {
   PENDING
   ACCEPTED
-  DECLINED
 }
