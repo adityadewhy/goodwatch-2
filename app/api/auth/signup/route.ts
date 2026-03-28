@@ -14,6 +14,7 @@ const signupSchema = z.object({
 		.string()
 		.min(8, "password >=8 chars")
 		.max(72, "password must be <=72 chars"),
+	captchaToken: z.string(), //	for turnstile
 });
 
 export async function POST(req: NextRequest) {
@@ -28,14 +29,36 @@ export async function POST(req: NextRequest) {
 			);
 		}
 
-		const {username, password} = result.data;
+		const {username, password, captchaToken} = result.data;
+
+		// Validate Turnstile token
+		const turnstileRes = await fetch(
+			"https://challenges.cloudflare.com/turnstile/v0/siteverify",
+			{
+				method: "POST",
+				headers: {"Content-Type": "application/json"},
+				body: JSON.stringify({
+					secret: process.env.TURNSTILE_SECRET,
+					response: captchaToken,
+				}),
+			},
+		);
+
+		const turnstileData = await turnstileRes.json();
+		if (!turnstileData.success) {
+			return NextResponse.json(
+				{error: "Captcha verification failed. Please try again."},
+				{status: 400},
+			);
+		}
+
 		const existing = await prisma.user.findUnique({
 			where: {username},
 		});
 
 		if (existing) {
 			return NextResponse.json(
-				{error: "username already taken"},
+				{error: "Username already taken"},
 				{status: 409},
 			);
 		}
@@ -52,23 +75,23 @@ export async function POST(req: NextRequest) {
 		const token = await createToken({userId: user.id, username: user.username});
 
 		const response = NextResponse.json(
-			{message: "account created successfully", username: user.username},
+			{message: "Account created successfully", username: user.username},
 			{status: 201},
 		);
 
 		response.cookies.set("token", token, {
 			httpOnly: true,
-			secure: process.env.NODE_ENV == "production",
+			secure: process.env.NODE_ENV === "production",
 			sameSite: "strict",
-			maxAge: 60 * 60 * 24 * 7, //7days
+			maxAge: 60 * 60 * 24 * 7, // 7 days
 			path: "/",
 		});
 
 		return response;
 	} catch (error) {
-		console.error("signup error:", error);
+		console.error("Signup error:", error);
 		return NextResponse.json(
-			{error: "couldnt signup. error. try again later"},
+			{error: "Could not signup. Please try again later."},
 			{status: 500},
 		);
 	}
