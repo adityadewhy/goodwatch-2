@@ -1,7 +1,9 @@
-export default function HomePage() {
+export default function TestPage() {
 	return (
-		<main>
-			<h1>welcome to GoodWatch</h1>
-		</main>
+		<div className="min-h-screen bg-gw-black flex items-center justify-center">
+			<h1 className="font-playfair text-5xl font-bold text-gw-gold italic">
+				Testing GoodWatch
+			</h1>
+		</div>
 	);
 }
