@@ -133,7 +133,7 @@ export default function SignupPage() {
 							href="/login"
 							className="text-gw-gold border-b border-gw-gold-dim pb-px"
 						>
-							Sign in
+							Log in
 						</a>
 					</p>
 				</div>
