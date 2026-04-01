@@ -1,7 +1,6 @@
 import {NextRequest, NextResponse} from "next/server";
-import {z} from "zod";
+import {map, z} from "zod";
 import bcrypt from "bcryptjs";
-import {Prisma} from "@prisma/client";
 import {createToken} from "@/lib/jwt";
 import {prisma} from "@/lib/prisma";
 
@@ -10,8 +9,38 @@ const loginSchema = z.object({
 	password: z.string().min(1, "password is required"),
 });
 
+const rateLimitMap = new Map<string, {count: number; lastAttempt: number}>();
+const MAX_ATTEMPTS = 5;
+const LOCKOUT_TIME_MS = 15 * 60 * 1000; //15min in ms
+
 export async function POST(req: NextRequest) {
 	try {
+		const ip = req.headers.get("x-forwaded-for") || "127.0.0.1";
+		const now = Date.now();
+		const record = rateLimitMap.get(ip);
+
+		if (record) {
+			if (record.count > MAX_ATTEMPTS) {
+				const timePassed = now - record.lastAttempt;
+				if (timePassed < LOCKOUT_TIME_MS) {
+					const timeLeft = Math.ceil((LOCKOUT_TIME_MS - timePassed) / 60000);
+					return NextResponse.json(
+						{error: `Too many attempts, try again in ${timeLeft} minutes.`},
+						{status: 429},
+					);
+				} else {
+					//lockout time expired, reset counter
+					rateLimitMap.set(ip, {count: 1, lastAttempt: now});
+				}
+			} else {
+				//not locked out yet but increase the failure count
+				rateLimitMap.set(ip, {count: record.count + 1, lastAttempt: now});
+			}
+		} else {
+			//first attempt
+			rateLimitMap.set(ip, {count: 1, lastAttempt: now});
+		}
+
 		const body = await req.json();
 		const result = loginSchema.safeParse(body);
 
@@ -30,10 +59,13 @@ export async function POST(req: NextRequest) {
 
 		if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
 			return NextResponse.json(
-				{error: "username password did not match"},
+				{error: "invalid username or password"},
 				{status: 401},
 			);
 		}
+
+		//clear ratelimit if log in success
+		rateLimitMap.delete(ip);
 
 		const token = await createToken({userId: user.id, username: user.username});
 
@@ -51,11 +83,11 @@ export async function POST(req: NextRequest) {
 		});
 
 		return response;
-	} catch (error){
-        console.error("login error", error)
-        return NextResponse.json(
-            {error: "something went wrong, login, try later"},
-            {status: 500}
-        )
-    }
+	} catch (error) {
+		console.error("login error", error);
+		return NextResponse.json(
+			{error: "something went wrong, login, try later"},
+			{status: 500},
+		);
+	}
 }
