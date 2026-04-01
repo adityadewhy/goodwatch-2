@@ -1,5 +1,5 @@
 import {NextRequest, NextResponse} from "next/server";
-import {map, z} from "zod";
+import {z} from "zod";
 import bcrypt from "bcryptjs";
 import {createToken} from "@/lib/jwt";
 import {prisma} from "@/lib/prisma";
@@ -15,7 +15,7 @@ const LOCKOUT_TIME_MS = 15 * 60 * 1000; //15min in ms
 
 export async function POST(req: NextRequest) {
 	try {
-		const ip = req.headers.get("x-forwaded-for") || "127.0.0.1";
+		const ip = req.headers.get("x-forwarded-for") || "127.0.0.1";
 		const now = Date.now();
 		const record = rateLimitMap.get(ip);
 
