@@ -9,7 +9,7 @@ const signupSchema = z.object({
 		.string()
 		.min(3, "username chars must be >=3 characters")
 		.max(20, "username chars must be <20 chars")
-		.regex(/^[a-zA-z0-9]/, "username can only contain alphanumerics"),
+		.regex(/^[a-zA-Z0-9]/, "username can only contain alphanumerics"),
 	password: z
 		.string()
 		.min(8, "password >=8 chars")
