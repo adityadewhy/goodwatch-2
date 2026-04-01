@@ -18,7 +18,7 @@ export async function middleware(req: NextRequest) {
 	const token = req.cookies.get("token")?.value;
 
 	if (!token) {
-		return NextResponse.json({error: "auth required"}, {status: 401});
+		return NextResponse.json({error: "turnstile auth required"}, {status: 401});
 	}
 
 	const payload = await verifyToken(token);
