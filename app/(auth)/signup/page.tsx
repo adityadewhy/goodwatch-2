@@ -130,7 +130,7 @@ export default function SignupPage() {
 					<p className="text-gw-muted">
 						Already have one?{" "}
 						<a
-							href="/"
+							href="/login"
 							className="text-gw-gold border-b border-gw-gold-dim pb-px"
 						>
 							Sign in
