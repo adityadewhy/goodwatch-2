@@ -30,14 +30,15 @@ model User {
 }
 
 model Movie {
-  id         String   @id @default(cuid())
-  tmdbId     Int      @unique
+  id         String    @id @default(cuid())
+  tmdbId     Int       @unique
+  mediaType  MediaType @default(MOVIE) // ← add this
   title      String
   year       Int?
   posterPath String?
   plot       String?
   tmdbRating Float?
-  cachedAt   DateTime @default(now())
+  cachedAt   DateTime  @default(now())
 
   ratings   Rating[]
   watchlist WatchlistItem[]
@@ -102,6 +103,11 @@ model Notification {
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum MediaType {
+  MOVIE
+  TV
 }
 
 enum FollowStatus {

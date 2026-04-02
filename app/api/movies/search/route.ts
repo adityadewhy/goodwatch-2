@@ -1,38 +1,46 @@
 import {NextRequest, NextResponse} from "next/server";
-import {searchMovies, getPosterUrl} from "@/lib/tmdb";
-import next from "next";
+import {searchMulti, getPosterUrl} from "@/lib/tmdb";
 
 export async function GET(req: NextRequest) {
 	const {searchParams} = new URL(req.url);
 	const query = searchParams.get("q");
 
-	if (!query || query.trim().length === 0) {
-		return NextResponse.json(
-			{error: "search query is required"},
-			{status: 400},
-		);
-	}
-
-	if (query.trim().length < 2) {
-		return NextResponse.json({error: "query chars must be >=2"}, {status: 400});
+	if (!query || query.trim().length < 2) {
+		return NextResponse.json({error: "Query too short"}, {status: 400});
 	}
 
 	try {
-		const results = await searchMovies(query.trim());
+		const results = await searchMulti(query.trim());
 
-		const movies = results.slice(0, 10).map((movie) => ({
-			tmdbId: movie.id,
-			title: movie.title,
-			year: movie.release_date
-				? new Date(movie.release_date).getFullYear()
-				: null,
-			posterUrl: getPosterUrl(movie.poster_path),
-			rating: movie.vote_average,
-		}));
+		const items = results.slice(0, 10).map((item) => {
+			if (item.media_type === "movie") {
+				return {
+					tmdbId: item.id,
+					mediaType: "movie" as const,
+					title: item.title,
+					year: item.release_date
+						? new Date(item.release_date).getFullYear()
+						: null,
+					posterUrl: getPosterUrl(item.poster_path),
+					rating: Math.round(item.vote_average * 10) / 10,
+				};
+			} else {
+				return {
+					tmdbId: item.id,
+					mediaType: "tv" as const,
+					title: item.name, // TV uses 'name'
+					year: item.first_air_date
+						? new Date(item.first_air_date).getFullYear()
+						: null,
+					posterUrl: getPosterUrl(item.poster_path),
+					rating: Math.round(item.vote_average * 10) / 10,
+				};
+			}
+		});
 
-		return NextResponse.json({movies});
+		return NextResponse.json({movies: items});
 	} catch (error) {
-		console.error("error searching movies", error);
-		return NextResponse.json({error: "failed to search movie"}, {status: 500});
+		console.error("Search error:", error);
+		return NextResponse.json({error: "Search failed"}, {status: 500});
 	}
 }
