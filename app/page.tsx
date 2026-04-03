@@ -1,5 +1,3 @@
-import Topbar from "@/components/Topbar";
-
 export default function TestPage() {
 	return (
 		<div className="min-h-screen bg-gw-black ">

@@ -25,9 +25,10 @@ type SearchResults = {
 	users: UserResult[];
 };
 
-export default function Topbar({username}: {username: string}) {
+export default function Topbar() {
 	const router = useRouter();
 
+	const [username, setUsername] = useState("");
 	const [searchQuery, setSearchQuery] = useState("");
 	const [searchResults, setSearchResults] = useState<SearchResults>({
 		movies: [],
@@ -38,6 +39,21 @@ export default function Topbar({username}: {username: string}) {
 	const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
 	const searchRef = useRef<HTMLDivElement>(null);
+
+	useEffect(() => {
+		fetch("/api/auth/me")
+			.then((res) => {
+				if (!res.ok) {
+					router.push("/login");
+					return;
+				}
+				return res.json();
+			})
+			.then((data) => {
+				if (data?.username) setUsername(data.username);
+			})
+			.catch(() => router.push("/"));
+	}, []);
 
 	//close search dropdown, if clicked outside
 	useEffect(() => {
@@ -265,7 +281,7 @@ export default function Topbar({username}: {username: string}) {
 						href={`/profile/${username}`}
 						className="w-8 h-8 rounded-full bg-gw-gold/10 border border-gw-gold/25 flex items-center justify-center text-gw-gold text-xs font-bold hover:bg-gw-gold/20 transition-colors ml-6"
 					>
-						{username.slice(0, 2).toUpperCase()}
+						{username ? username.slice(0, 2).toUpperCase() : ""}
 					</Link>
 				</div>
 
@@ -340,7 +356,7 @@ export default function Topbar({username}: {username: string}) {
 							className="flex items-center gap-3 px-6 py-4 border-b border-gw-gold/10 bg-gw-gold/5"
 						>
 							<div className="w-9 h-9 rounded-full bg-gw-gold/10 border border-gw-gold/25 flex items-center justify-center text-gw-gold text-sm font-bold shrink-0">
-								{username.slice(0, 2).toUpperCase()}
+								{username ? username.slice(0, 2).toUpperCase() : ""}
 							</div>
 							<div>
 								<div className="text-sm text-gw-white">{username}</div>
