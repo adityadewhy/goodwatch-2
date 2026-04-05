@@ -42,6 +42,8 @@ export async function GET(
 					: null,
 				posterPath: getPosterUrl(tmdbMovie.poster_path),
 				plot: tmdbMovie.overview,
+				director: director,
+				cast: cast,
 				cachedAt: new Date(),
 			},
 			create: {
@@ -53,6 +55,8 @@ export async function GET(
 				posterPath: getPosterUrl(tmdbMovie.poster_path),
 				plot: tmdbMovie.overview,
 				tmdbRating: tmdbMovie.vote_average,
+				director: director,
+				cast: cast,
 			},
 		});
 

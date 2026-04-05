@@ -38,6 +38,8 @@ model Movie {
   posterPath String?
   plot       String?
   tmdbRating Float?
+  director   String?
+  cast       String[]
   cachedAt   DateTime  @default(now())
 
   ratings   Rating[]
