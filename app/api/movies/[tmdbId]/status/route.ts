@@ -41,7 +41,7 @@ export async function GET(
 
 	return NextResponse.json({
 		rating: rating?.score ?? null,
-		inWatchlistItem: !!watchlistItem,
+		inWatchlist: !!watchlistItem,
 		comment: comment ? {id: comment.id, content: comment.content} : null,
 	});
 }
