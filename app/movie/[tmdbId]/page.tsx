@@ -33,6 +33,8 @@ export default function MoviePage() {
 	const [userStatus, setUserStatus] = useState<UserStatus | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [showRatingPicker, setShowRatingPicker] = useState(false);
+	const [commentText, setCommentText] = useState("");
+	const [isEditingComment, setIsEditingComment] = useState(false);
 
 	useEffect(() => {
 		if (!tmdbId) return;
@@ -123,6 +125,59 @@ export default function MoviePage() {
 			//revert of error too
 			setUserStatus((prev) =>
 				prev ? {...prev, inWatchlist: !isCurrentlyInList} : null,
+			);
+		}
+	};
+
+	const handleSaveComment = async () => {
+		if (!commentText.trim()) return;
+
+		const previousComment = userStatus?.comment;
+		const optimisticComment = {id: "temp-id", content: commentText.trim()};
+
+		setUserStatus((prev) =>
+			prev ? {...prev, comment: optimisticComment} : null,
+		);
+
+		setIsEditingComment(false);
+
+		try {
+			const res = await fetch(`/api/movies/${tmdbId}/comments`, {
+				method: "POST",
+				headers: {"Content-Type": "application/json"},
+				body: JSON.stringify({content: commentText.trim()}),
+			});
+
+			if (!res.ok) throw new Error("Failed to save");
+		} catch (error) {
+			console.error(error);
+
+			//rollback on failur
+			setUserStatus((prev) =>
+				prev ? {...prev, comment: previousComment || null} : null,
+			);
+		}
+	};
+
+	const handleDeleteComment = async () => {
+		const previousComment = userStatus?.comment;
+
+		// optimistic ui update
+		setUserStatus((prev) => (prev ? {...prev, comment: null} : null));
+		setCommentText("");
+
+		try {
+			const res = await fetch(`/api/movies/${tmdbId}/comments`, {
+				method: "DELETE",
+			});
+
+			if (!res.ok) {
+				throw new Error("failed to delete");
+			}
+		} catch (error) {
+			console.error(error);
+			setUserStatus((prev) =>
+				prev ? {...prev, comment: previousComment || null} : null,
 			);
 		}
 	};
@@ -277,6 +332,81 @@ export default function MoviePage() {
 					)}
 				</div>
 			)}
+
+			{/* comment */}
+			<div className="p-5 border-b border-gw-gold/10">
+				<div className="text-xs tracking-widest uppercase text-gw-gold-dim mb-3.5 flex items-center gap-2">
+					Your comment
+					<div className="flex-1 h-px bg-gw-gold/10" />
+				</div>
+
+				{/* saved comment and not editing */}
+				{userStatus?.comment && !isEditingComment ? (
+					<div className="bg-gw-gold/5 border border-gw-gold/15 rounded-sm p-3 mb-2">
+						{/* 2. Added break-words so long text doesn't cause scrollbars */}
+						<p className="text-sm text-gw-white leading-relaxed whitespace-pre-wrap wrap-break-word">
+							{userStatus.comment.content}
+						</p>
+						<div className="flex gap-3 mt-2">
+							<button
+								onClick={() => {
+									setCommentText(userStatus.comment!.content);
+									setIsEditingComment(true);
+								}}
+								className="text-xs tracking-widest uppercase text-gw-muted hover:text-gw-gold transition-colors"
+							>
+								Edit
+							</button>
+							<button
+								onClick={handleDeleteComment}
+								className="text-xs tracking-widest uppercase text-gw-error/80 hover:text-gw-error transition-colors"
+							>
+								Delete
+							</button>
+						</div>
+					</div>
+				) : (
+					//writing new comment or editing existing
+					<div className="flex flex-col gap-2">
+						{/* Notice the p-5 wrapper is gone from here now */}
+						<div className="bg-gw-surface border border-gw-gold/15 focus-within:border-gw-gold/40 transition-colors rounded-sm p-2.5 flex flex-col">
+							<textarea
+								value={commentText}
+								onChange={(e) => setCommentText(e.target.value.slice(0, 500))}
+								placeholder="write a comment... (max 500 chars)"
+								// 3. Added w-full and fixed the min-h arbitrary value
+								className="w-full bg-transparent text-sm text-gw-white placeholder:text-gw-muted/60 placeholder:italic outline-none resize-none min-h-16"
+							/>
+
+							<div className="flex justify-between items-center mt-2">
+								<span className="text-xs text-gw-muted">
+									{commentText.length}/500
+								</span>
+							</div>
+
+							<div className="flex gap-2 justify-end">
+								{isEditingComment && (
+									<button
+										onClick={() => setIsEditingComment(false)}
+										className="px-3 py-1.5 text-xs uppercase tracking-widest text-gw-muted hover:text-gw-white transition-colors"
+									>
+										Cancel
+									</button>
+								)}
+
+								<button
+									onClick={handleSaveComment}
+									disabled={commentText.trim().length === 0}
+									// 4. Fixed the weird invisible space character after rounded-sm
+									className="px-4 py-1.5 bg-gw-surface2 border border-gw-gold/20 text-gw-gold text-xs uppercase tracking-widest rounded-sm hover:bg-gw-gold/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+								>
+									Save Comment
+								</button>
+							</div>
+						</div>
+					</div>
+				)}
+			</div>
 		</div>
 	);
 }

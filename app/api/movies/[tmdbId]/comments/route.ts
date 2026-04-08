@@ -60,16 +60,6 @@ export async function POST(
 		return NextResponse.json({error: "movie not found"}, {status: 404});
 	}
 
-	const existing = await prisma.comment.findFirst({
-		where: {userId: user.userId, movieId: movie.id},
-	});
-	if (existing) {
-		return NextResponse.json(
-			{error: "1 comment/movie permitted. already used"},
-			{status: 409},
-		);
-	}
-
 	const body = await req.json();
 	const result = commentSchema.safeParse(body);
 
@@ -78,6 +68,21 @@ export async function POST(
 			{error: result.error.issues[0].message},
 			{status: 400},
 		);
+	}
+
+	// Check if the user already has a comment
+	const existing = await prisma.comment.findFirst({
+		where: {userId: user.userId, movieId: movie.id},
+	});
+
+	if (existing) {
+		// UPDATE: If a comment exists, update its content instead of throwing a 409
+		const updatedComment = await prisma.comment.update({
+			where: {id: existing.id},
+			data: {content: result.data.content},
+			include: {user: {select: {username: true}}},
+		});
+		return NextResponse.json({comment: updatedComment}, {status: 200});
 	}
 
 	const comment = await prisma.comment.create({
@@ -91,4 +96,33 @@ export async function POST(
 		},
 	});
 	return NextResponse.json({comment}, {status: 201});
+}
+
+export async function DELETE(
+	req: NextRequest,
+	{params}: {params: Promise<{tmdbId: string}>},
+) {
+	const user = getAuthUser(req);
+	if (!user) {
+		return NextResponse.json({error: "unauthorized"}, {status: 401});
+	}
+
+	const {tmdbId: tmdbIdStr} = await params;
+	const tmdbId = parseInt(tmdbIdStr);
+
+	const movie = await prisma.movie.findUnique({where: {tmdbId}});
+	if (!movie) {
+		return NextResponse.json({error: "movie not found"}, {status: 404});
+	}
+
+	// We use deleteMany here because we are targeting the comment by the
+	// combination of userId and movieId, rather than the comment's unique ID.
+	await prisma.comment.deleteMany({
+		where: {
+			userId: user.userId,
+			movieId: movie.id,
+		},
+	});
+
+	return NextResponse.json({message: "comment deleted"}, {status: 200});
 }
