@@ -41,6 +41,7 @@ export async function GET(
 					? new Date(tmdbMovie.release_date).getFullYear()
 					: null,
 				posterPath: getPosterUrl(tmdbMovie.poster_path),
+				backdrop_path: getPosterUrl(tmdbMovie.backdrop_path),
 				plot: tmdbMovie.overview,
 				director: director,
 				cast: cast,
@@ -53,6 +54,7 @@ export async function GET(
 					? new Date(tmdbMovie.release_date).getFullYear()
 					: null,
 				posterPath: getPosterUrl(tmdbMovie.poster_path),
+				backdrop_path: getPosterUrl(tmdbMovie.backdrop_path),
 				plot: tmdbMovie.overview,
 				tmdbRating: tmdbMovie.vote_average,
 				director: director,
