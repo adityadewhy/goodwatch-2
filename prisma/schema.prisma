@@ -30,17 +30,18 @@ model User {
 }
 
 model Movie {
-  id         String    @id @default(cuid())
-  tmdbId     Int       @unique
-  mediaType  MediaType @default(MOVIE) // ← add this
-  title      String
-  year       Int?
-  posterPath String?
-  plot       String?
-  tmdbRating Float?
-  director   String?
-  cast       String[]
-  cachedAt   DateTime  @default(now())
+  id            String    @id @default(cuid())
+  tmdbId        Int       @unique
+  mediaType     MediaType @default(MOVIE)
+  title         String
+  year          Int?
+  posterPath    String?
+  backdrop_path String?
+  plot          String?
+  tmdbRating    Float?
+  director      String?
+  cast          String[]
+  cachedAt      DateTime  @default(now())
 
   ratings   Rating[]
   watchlist WatchlistItem[]

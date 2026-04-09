@@ -11,6 +11,7 @@ export type TMDBMovie = {
 	title: string;
 	release_date: string;
 	poster_path: string | null;
+	backdrop_path: string | null;
 	overview: string;
 	vote_average: number;
 	credits?: {
@@ -24,6 +25,7 @@ export type TMDBShow = {
 	name: string; // TV uses 'name' not 'title'
 	first_air_date: string; // TV uses 'first_air_date' not 'release_date'
 	poster_path: string | null;
+	backdrop_path: string | null;
 	overview: string;
 	vote_average: number;
 	credits?: {
