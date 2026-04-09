@@ -5,7 +5,7 @@ import {useParams} from "next/navigation";
 import {useEffect, useState} from "react";
 import Image from "next/image";
 
-import {Star, Plus, Check} from "lucide-react";
+import {Star, Plus, Check, Tv, Heart} from "lucide-react";
 
 type MovieData = {
 	id: string;
@@ -23,6 +23,8 @@ type UserStatus = {
 	rating: number | null;
 	inWatchlist: boolean;
 	comment: {id: string; content: string} | null;
+	isProfile: boolean;
+	isCover: boolean;
 };
 
 export default function MoviePage() {
@@ -126,6 +128,31 @@ export default function MoviePage() {
 			setUserStatus((prev) =>
 				prev ? {...prev, inWatchlist: !isCurrentlyInList} : null,
 			);
+		}
+	};
+
+	const handleSetFeature = async (type: "PROFILE" | "COVER") => {
+		const previousStatus = userStatus;
+		// Optimistic UI update
+		setUserStatus((prev) => {
+			if (!prev) return null;
+			return {
+				...prev,
+				isProfile: type === "PROFILE" ? true : prev.isProfile,
+				isCover: type === "COVER" ? true : prev.isCover,
+			};
+		});
+
+		try {
+			await fetch(`/api/movies/${tmdbId}/feature`, {
+				method: "POST",
+				headers: {"Content-Type": "application/json"},
+				body: JSON.stringify({featureType: type}),
+			});
+		} catch (error) {
+			console.error("Failed to set feature:", error);
+			// Ideally revert optimistic update here on fail
+			setUserStatus(previousStatus);
 		}
 	};
 
@@ -292,6 +319,36 @@ export default function MoviePage() {
 					>
 						<Plus className="w-3.5 h-3.5" strokeWidth={3} />
 						Add to Watchlist
+					</button>
+				)}
+
+				{userStatus?.isProfile ? (
+					<div className="flex items-center gap-1.5 px-3 h-8 rounded-sm text-[10px] tracking-widest uppercase font-medium bg-transparent text-gw-muted border border-gw-gold/15 hover:text-gw-white transition-colors">
+						<Tv className="w-3.5 h-3.5" strokeWidth={3} />
+						Currently Watching
+					</div>
+				) : (
+					<button
+						onClick={() => handleSetFeature("PROFILE")}
+						className="flex items-center gap-1.5 px-3 h-8 rounded-sm text-[10px] tracking-widest uppercase font-medium bg-gw-gold text-gw-black hover:bg-[#e8c97a] transition-colors"
+					>
+						<Tv className=" w-3.5 h-3.5" strokeWidth={3} />
+						Set as Currently Watching
+					</button>
+				)}
+
+				{userStatus?.isCover ? (
+					<div className="flex items-center gap-1.5 px-3 h-8 rounded-sm text-[10px] tracking-widest uppercase font-medium bg-transparent text-gw-muted border border-gw-gold/15 hover:text-gw-white transition-colors">
+						<Heart className="w-3 h-3" />
+						All-Time Favorite
+					</div>
+				) : (
+					<button
+						onClick={() => handleSetFeature("COVER")}
+						className="flex items-center gap-1.5 px-3 h-8 rounded-sm text-[10px] tracking-widest uppercase font-medium bg-gw-gold text-gw-black hover:bg-[#e8c97a] transition-colors"
+					>
+						<Heart className="w-3 h-3" />
+						Set as All-Time Favorite
 					</button>
 				)}
 			</div>

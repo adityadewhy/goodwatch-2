@@ -27,7 +27,7 @@ export async function GET(
 		});
 	}
 
-	const [rating, watchlistItem, comment] = await Promise.all([
+	const [rating, watchlistItem, comment, dbUser] = await Promise.all([
 		prisma.rating.findUnique({
 			where: {userId_movieId: {userId: user.userId, movieId: movie.id}},
 		}),
@@ -37,11 +37,19 @@ export async function GET(
 		prisma.comment.findFirst({
 			where: {userId: user.userId, movieId: movie.id},
 		}),
+
+		// Fetch the user to check their profile/cover IDs
+		prisma.user.findUnique({
+			where: {id: user.userId},
+			select: {profileMovieId: true, coverMovieId: true},
+		}),
 	]);
 
 	return NextResponse.json({
 		rating: rating?.score ?? null,
 		inWatchlist: !!watchlistItem,
 		comment: comment ? {id: comment.id, content: comment.content} : null,
+		isProfile: dbUser?.profileMovieId === tmdbId,
+		isCover: dbUser?.coverMovieId === tmdbId,
 	});
 }
