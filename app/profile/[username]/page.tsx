@@ -183,7 +183,7 @@ export default function ProfilePage() {
 									{followStatus === "ACCEPTED"
 										? "Unfollow"
 										: followStatus === "PENDING"
-											? "Requested"
+											? "Request pending, Click to cancel"
 											: "Follow"}
 								</button>
 							)}

@@ -264,16 +264,16 @@ export default function Topbar() {
 						Ratings
 					</Link>
 
-					{/* Friends */}
+					{/* socials */}
 					<Link
-						href="/friends"
+						href="/socials"
 						className="flex items-center gap-1.5 px-3 h-9 text-gw-muted hover:text-gw-white transition-color text-xs tracking-widest uppercase"
 					>
 						<Users
 							className="w-3.5 h-3.5 text-gw-muted shrink-0"
 							strokeWidth={2}
 						/>
-						Friends
+						Socials
 					</Link>
 
 					{/* avatar */}
@@ -284,8 +284,6 @@ export default function Topbar() {
 						{username ? username.slice(0, 2).toUpperCase() : ""}
 					</Link>
 				</div>
-
-				{/* mobile */}
 
 				{/* mobile */}
 				<div className="flex sm:hidden items-center gap-2 ml-auto">
@@ -382,11 +380,11 @@ export default function Topbar() {
 							<Star className="w-4 h-4" /> Ratings
 						</Link>
 						<Link
-							href="/friends"
+							href="/socials"
 							onClick={() => setMobileMenuOpen(false)}
 							className="flex items-center gap-3 px-6 py-4 border-b border-gw-gold/5 text-xs tracking-widest uppercase text-gw-muted hover:text-gw-white hover:bg-gw-surface2 transition-colors"
 						>
-							<Users className="w-4 h-4" /> Friends
+							<Users className="w-4 h-4" /> Socials
 						</Link>
 
 						{/* Logout Button */}
