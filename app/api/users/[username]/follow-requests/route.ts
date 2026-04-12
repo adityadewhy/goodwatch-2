@@ -51,7 +51,7 @@ export async function PATCH(req: NextRequest) {
 		},
 	});
 
-	if (!follow || follow.followerId !== currentUser.userId) {
+	if (!follow || follow.followingId !== currentUser.userId) {
 		return NextResponse.json({error: "Request not found"}, {status: 404});
 	}
 
