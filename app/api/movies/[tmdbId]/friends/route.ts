@@ -28,67 +28,66 @@ export async function GET(
 		NextResponse.json({friends: []});
 	}
 
-	const [ratings, comments, watchlistItems] = await Promise.all([
-		prisma.rating.findMany({
-			where: {movieId: movie.id, userId: {in: followingIds}},
-			include: {user: {select: {username: true}}},
-		}),
-		prisma.comment.findMany({
-			where: {movieId: movie.id, userId: {in: followingIds}},
-			include: {user: {select: {username: true}}},
-		}),
-		prisma.watchlistItem.findMany({
-			where: {movieid: movie.id, userId: {in: followingIds}},
-			include: {user: {select: {username: true}}},
-		}),
-	]);
+	const [ratings, comments, watchlistItems, friendsProfiles] =
+		await Promise.all([
+			prisma.rating.findMany({
+				where: {movieId: movie.id, userId: {in: followingIds}},
+				include: {user: {select: {username: true}}},
+			}),
+			prisma.comment.findMany({
+				where: {movieId: movie.id, userId: {in: followingIds}},
+				include: {user: {select: {username: true}}},
+			}),
+			prisma.watchlistItem.findMany({
+				where: {movieId: movie.id, userId: {in: followingIds}},
+				include: {user: {select: {username: true}}},
+			}),
+			prisma.user.findMany({
+				where: {id: {in: followingIds}},
+				select: {
+					id: true,
+					username: true,
+					profileMovieId: true,
+					coverMovieId: true,
+				},
+			}),
+		]);
 
-	const friendMap = new Map<
-		string,
-		{
-			username: string;
-			rating: number | null;
-			comment: string | null;
-			inWatchlist: boolean;
-		}
-	>();
+	const friendMap = new Map<string, any>();
 
-	for (const r of ratings) {
-		friendMap.set(r.userId, {
-			username: r.user.username,
-			rating: r.score,
+	for (const p of friendsProfiles) {
+		friendMap.set(p.id, {
+			username: p.username,
+			rating: null,
 			comment: null,
 			inWatchlist: false,
+			isProfile: p.profileMovieId === tmdbId,
+			isCover: p.coverMovieId === tmdbId,
 		});
 	}
 
+	for (const r of ratings) {
+		const f = friendMap.get(r.userId);
+		if (f) f.rating = r.score;
+	}
 	for (const c of comments) {
-		const existing = friendMap.get(c.userId);
-		if (existing) {
-			existing.comment = c.content;
-		} else {
-			friendMap.set(c.userId, {
-				username: c.user.username,
-				rating: null,
-				comment: c.content,
-				inWatchlist: false,
-			});
-		}
+		const f = friendMap.get(c.userId);
+		if (f) f.comment = c.content;
 	}
-
 	for (const w of watchlistItems) {
-		const existing = friendMap.get(w.userId);
-		if (existing) {
-			existing.inWatchlist = true;
-		} else {
-			friendMap.set(w.userId, {
-				username: w.user.username,
-				rating: null,
-				comment: null,
-				inWatchlist: true,
-			});
-		}
+		const f = friendMap.get(w.userId);
+		if (f) f.inWatchlist = true;
 	}
 
-	return NextResponse.json({friends: Array.from(friendMap.values())});
+	// filtering out followings who have zero interaction with this movie
+	const result = Array.from(friendMap.values()).filter(
+		(f) =>
+			f.rating !== null ||
+			f.comment !== null ||
+			f.inWatchlist ||
+			f.isProfile ||
+			f.isCover,
+	);
+
+	return NextResponse.json({friends: result});
 }

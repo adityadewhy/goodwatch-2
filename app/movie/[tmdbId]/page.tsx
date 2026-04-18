@@ -1,5 +1,6 @@
 "use client";
 import Topbar from "@/components/Topbar";
+import FollowingActivity from "@/components/FollowingActivity";
 
 import {useParams} from "next/navigation";
 import {useEffect, useState} from "react";
@@ -37,23 +38,29 @@ export default function MoviePage() {
 	const [showRatingPicker, setShowRatingPicker] = useState(false);
 	const [commentText, setCommentText] = useState("");
 	const [isEditingComment, setIsEditingComment] = useState(false);
+	const [friendsActivity, setFriendsActivity] = useState<any[]>([]);
 
 	useEffect(() => {
 		if (!tmdbId) return;
 		async function fetchData() {
 			try {
-				const [movieRes, statusRes] = await Promise.all([
+				const [movieRes, statusRes, friendsRes] = await Promise.all([
 					fetch(`/api/movies/${tmdbId}`),
 					fetch(`/api/movies/${tmdbId}/status?t=${Date.now()}`),
+					fetch(`/api/movies/${tmdbId}/friends`),
 				]);
 				const movieData = await movieRes.json();
 				const statusData = await statusRes.json();
+				const friendsData = await friendsRes.json();
 
 				if (movieRes.ok && movieData.movie) {
 					setMovie(movieData.movie);
 				}
 				if (statusRes.ok) {
 					setUserStatus(statusData);
+				}
+				if (friendsRes.ok) {
+					setFriendsActivity(friendsData.friends || []);
 				}
 			} catch (error) {
 				console.error("Failed to fetch movie: ", error);
@@ -464,6 +471,8 @@ export default function MoviePage() {
 					</div>
 				)}
 			</div>
+
+			<FollowingActivity friends={friendsActivity} />
 		</div>
 	);
 }
