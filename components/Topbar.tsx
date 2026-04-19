@@ -242,14 +242,14 @@ export default function Topbar() {
 				<div className="hidden sm:flex items-center gap-1">
 					{/* watchlist */}
 					<Link
-						href="/watchlist"
+						href="/watchlists"
 						className="flex items-center gap-1.5 px-3 h-9 text-gw-muted hover:text-gw-white transition-color text-xs tracking-widest uppercase"
 					>
 						<Bookmark
 							className="w-3.5 h-3.5 text-gw-muted shrink-0"
 							strokeWidth={2}
 						/>
-						Watchlist
+						Watchlists
 					</Link>
 
 					{/* Ratings */}
