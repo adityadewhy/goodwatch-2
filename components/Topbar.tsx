@@ -1,6 +1,14 @@
 "use client";
 
-import {Search, Bookmark, Star, Users, Menu, LogOut} from "lucide-react";
+import {
+	Search,
+	Bookmark,
+	Star,
+	Users,
+	Menu,
+	LogOut,
+	MessageSquareText,
+} from "lucide-react";
 
 import {useRouter} from "next/navigation";
 import {useEffect, useState, useRef} from "react";
@@ -262,6 +270,18 @@ export default function Topbar() {
 							strokeWidth={2}
 						/>
 						Ratings
+					</Link>
+
+					{/* Comments */}
+					<Link
+						href="/comments"
+						className="flex items-center gap-1.5 px-3 h-9 text-gw-muted hover:text-gw-white transition-color text-xs tracking-widest uppercase"
+					>
+						<MessageSquareText
+							className="w-3.5 h-3.5 text-gw-muted shrink-0"
+							strokeWidth={2}
+						/>
+						Comments
 					</Link>
 
 					{/* socials */}
