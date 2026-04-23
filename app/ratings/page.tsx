@@ -210,7 +210,7 @@ export default function RatingsPage() {
 										<Film className="w-8 h-8 text-gw-gold/20" />
 									)}
 
-									<div className="bg-linear-to-t from-[#111] via-transparent to-transparent opacity-80" />
+									<div className="bg-linear-to-b from-[#111] via-transparent to-transparent opacity-80" />
 								</div>
 
 								<div className="p-2 flex flex-col flex-1">
